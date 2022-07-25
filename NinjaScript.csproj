@@ -37,7 +37,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Indicators\BarCountV2.cs" />
-    <Compile Include="Indicators\Fractal.cs" />
+    <Compile Include="Indicators\FractalsV2.cs" />
     <Compile Include="Indicators\Trendlines.cs" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

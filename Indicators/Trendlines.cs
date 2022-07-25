@@ -145,6 +145,13 @@ namespace NinjaTrader.NinjaScript.Indicators
 
 				}
 
+				int count = 0;
+				foreach (var trend in up)
+				{
+					Draw.Line(this, "TrendUpLine" + count, false, trend.StartTime, trend.StartPrice, trend.EndTime, trend.EndPrice, Brushes.Aqua, DashStyleHelper.Dot, 2);
+					count++;
+				}
+
 			}
 
 
