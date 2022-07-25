@@ -58,8 +58,6 @@ namespace NinjaTrader.NinjaScript.Indicators
 			{
 				return;
 			}
-
-			// find the high fractal if the high of a candle if greater than previous and future candle
 			if (High[2] > High[1] && High[2] > High[3])
 			{
 				DownFractals dfrac = new DownFractals();
@@ -68,8 +66,6 @@ namespace NinjaTrader.NinjaScript.Indicators
 				downFractals.Add(dfrac);
 				//Draw.ArrowDown(this, "Arrow_Down", false, Time[2], High[2] + TickSize, Brushes.Red);
 			}
-
-			// find the low if the low a candle is lower than the previous and futre candle
 			if (Low[2] < Low[1] && Low[2] < Low[3])
 			{
 				UpFractals ufrac = new UpFractals();
@@ -78,7 +74,6 @@ namespace NinjaTrader.NinjaScript.Indicators
 				upFractals.Add(ufrac);
 			}
 
-			// if the list greater than 0, draw an arrow
 			if (downFractals.Count > 0)
 			{
 				for (int i = 0; i < downFractals.Count; i++)
@@ -86,11 +81,10 @@ namespace NinjaTrader.NinjaScript.Indicators
 					Draw.ArrowDown(this, "Arrow_Down" + i.ToString(), false, downFractals[i].Date,
 						downFractals[i].Price + TickSize, Brushes.Red);
 
-
+					//Print("Down Frac date is : " + downFractals[i].Date);
+					//Print("");
 				}
 			}
-
-			// if the list is greater than 0, draw an arrow
 			if (upFractals.Count > 0)
 			{
 				for (int j = 0; j < upFractals.Count; j++)
@@ -104,7 +98,6 @@ namespace NinjaTrader.NinjaScript.Indicators
 
 		}
 
-		// set the getters to be accessible to other indicators in ninjascript
 		#region Properties
 		[Browsable(false)]
 		[XmlIgnore]
@@ -122,7 +115,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 		#endregion
 	}
 
-	// create classes to store information
+
 	public class DownFractals
 	{
 		public DateTime Date { get; set; }
