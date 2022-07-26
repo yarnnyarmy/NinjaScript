@@ -26,10 +26,15 @@ namespace NinjaTrader.NinjaScript.Indicators
 {
 	public class TrendLinesFromFractals : Indicator
 	{
-		//private List<exposedVariable>;
+		// up fractals
 		private int upStart = 0;
 		private int upNext = 0;
-		List<UpTrends> up = new List<UpTrends>();
+		private List<UpTrends> up = new List<UpTrends>();
+
+		// down fractals
+		private int downStart = 0;
+		private int downNext = 0;
+		private List<DownTrends> down = new List<DownTrends>();
 		protected override void OnStateChange()
 		{
 			if (State == State.SetDefaults)
@@ -67,6 +72,13 @@ namespace NinjaTrader.NinjaScript.Indicators
 				return;
 			}
 			FractalsV2().Update();
+			Ups();
+			Downs();
+
+		}
+
+		protected List<UpTrends> Ups()
+		{
 			var fracUp = FractalsV2().UpFractals;
 			if (fracUp.Count > 1)
 			{
@@ -102,13 +114,6 @@ namespace NinjaTrader.NinjaScript.Indicators
 						}
 						int barI = CurrentBar - Bars.GetBar(Time[i]);
 						double lowBarI = Low[barI];
-						//Print("The start bar is : " + upBarStart);
-						//Print("The low of start bar is : " + Low[upBarStart]);
-						//Print("The next bar is : " + upBarNext);
-						//Print("The low of next bar is : " + Low[upBarNext]);
-						//Print("Bar I is : " + barI);
-						//Print("Low of bar I is : " + lowBarI);
-						//Print("");
 
 						double upSlope1 = (Low[upBarStart] - Low[upBarNext]) /
 										  (upBarStart - upBarNext);
@@ -135,7 +140,7 @@ namespace NinjaTrader.NinjaScript.Indicators
 							Print(uptrends.StartTime);
 							Print(uptrends.EndPrice);
 							Print(uptrends.EndTime);
-							Draw.Line(this, "TrendUpLine" + i, false, uptrends.StartTime, uptrends.StartPrice, uptrends.EndTime, uptrends.EndPrice, Brushes.Aqua, DashStyleHelper.Dot, 2);
+
 							up.Add(uptrends);
 							upStart++;
 						}
@@ -144,34 +149,106 @@ namespace NinjaTrader.NinjaScript.Indicators
 					//upStart++;
 
 				}
-
-				int count = 0;
-				foreach (var trend in up)
+				if (up.Count > 0)
 				{
-					Draw.Line(this, "TrendUpLine" + count, false, trend.StartTime, trend.StartPrice, trend.EndTime, trend.EndPrice, Brushes.Aqua, DashStyleHelper.Dot, 2);
-					count++;
+					int count = 0;
+					foreach (var trend in up)
+					{
+						Draw.Line(this, "TrendUpLine" + count, false, trend.StartTime, trend.StartPrice, trend.EndTime, trend.EndPrice, Brushes.Aqua, DashStyleHelper.Dot, 2);
+						count++;
+					}
 				}
+
 
 			}
 
+			return up;
+		}
 
-			//Fractals(Input);
+		protected List<DownTrends> Downs()
+		{
+			Print("Get Down Fractals");
+			var fracDown = FractalsV2().DownFractals;
+			if (fracDown.Count > 1)
+			{
+				if (!fracDown[fracDown.Count - 1].Date.Equals(fracDown[downNext].Date))
+				{
+					downNext = fracDown.Count - 1;
+					downStart = 0;
+				}
+				Print("Start while loop");
+				while (downStart < downNext)
+				{
+					Print("Downstart is " + downStart);
+					Print("DownNext is " + downNext);
+					int downBarStart = CurrentBar - Bars.GetBar(fracDown[downStart].Date);
+					int downBarNext = CurrentBar - Bars.GetBar(fracDown[downNext].Date);
+					Print("Start for loop");
+					for (int j = downBarNext + 1; j < downBarStart; j++)
+					{
+
+						if (High[downBarStart] < High[downBarNext])
+						{
+							Print("High of start is less than high of next");
+							downStart++;
+							break;
+						}
+						int barJ = CurrentBar - Bars.GetBar(Time[j]);
+						double downSlope1 = (High[downBarStart] - High[downBarNext]) /
+											(downBarStart - downBarNext);
+						double downSlope2 = (High[downBarStart] - High[barJ]) /
+											(downBarStart - barJ);
+
+						if (downSlope1 > downSlope2)
+						{
+							Print("downslope 1 is < downslope 2");
+							downStart++;
+							break;
+						}
+						if ((downSlope1 <= downSlope2) && (j + 1 == downBarStart))
+						{
+							Print("Adding to down");
+							DownTrends downTrends = new DownTrends();
+							downTrends.StartTime = fracDown[downStart].Date;
+							downTrends.StartPrice = fracDown[downStart].Price;
+							downTrends.EndTime = fracDown[downNext].Date;
+							downTrends.EndPrice = fracDown[downNext].Price;
+							down.Add(downTrends);
+							downStart++;
+						}
+					}
+				}
+
+				int downCount = 0;
+				if (down.Count > 0)
+				{
+					Print("Doing foreach loop");
+					foreach (var downTrend in down)
+					{
+						Draw.Line(this, "TrendDownLine" + downCount, false, downTrend.StartTime, downTrend.StartPrice, downTrend.EndTime, downTrend.EndPrice, Brushes.MediumVioletRed, DashStyleHelper.Dot, 2);
+						downCount++;
+					}
+				}
+
+			}
+			return down;
 		}
 
 		#region Properties
-		//public UpFractals Fracs
-		//{
-		//	get
-		//	{
-		//		//call OnBarUpdate before returning tripleValue
-		//		Update();
-		//		return fracs;
-		//	}
-		//}
+
 		#endregion
 	}
 
 	public class UpTrends
+	{
+		public DateTime StartTime { get; set; }
+		public double StartPrice { get; set; }
+		public DateTime EndTime { get; set; }
+		public double EndPrice { get; set; }
+		public double TrendSlope { get; set; }
+	}
+
+	public class DownTrends
 	{
 		public DateTime StartTime { get; set; }
 		public double StartPrice { get; set; }
